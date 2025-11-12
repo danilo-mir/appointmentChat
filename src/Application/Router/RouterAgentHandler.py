@@ -1,9 +1,9 @@
 from typing import List
-from src.agents.base_agent import AgentResponse, HandlerType
-from src.handlers.base_handler import Handler
-from src.utils.logger import get_logger
+from src.SharedKernel.AgentsConfig.base_agent import AgentResponse, HandlerType
+from src.Application.base_handler import Handler
+from src.SharedKernel.Logging.Logger import get_logger
 
-class RouterHandler(Handler):
+class RouterAgentHandler(Handler):
     """
     Handler responsável por rotear mensagens para os handlers apropriados
     no contexto de anamnese de sintomas.

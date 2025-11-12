@@ -2,9 +2,9 @@ import streamlit as st
 import os
 import asyncio
 from dotenv import load_dotenv
-from src.controllers.chat_controller import ChatController
-from src.utils.exceptions import POOChatException
-from src.utils.logger import get_logger
+from src.Controllers.ChatController import ChatController
+from src.SharedKernel.Messages.Exceptions import POOChatException
+from src.SharedKernel.Logging.Logger import get_logger
 
 # Configuração do logger
 logger = get_logger(__name__)

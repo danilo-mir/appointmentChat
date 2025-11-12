@@ -1,20 +1,17 @@
 # src/registry.py
 from typing import Dict, Type, Tuple, Optional
-from src.handlers.base_handler import Handler
-from src.agents.base_agent import Agent, GeminiAgent
-from src.utils.exceptions import HandlerNotFoundError, AgentConfigurationError
-from src.utils.logger import get_logger
+from src.Application.base_handler import Handler
+from src.SharedKernel.AgentsConfig.base_agent import Agent, GeminiAgent
+from src.SharedKernel.Messages.Exceptions import HandlerNotFoundError, AgentConfigurationError
+from src.SharedKernel.Logging.Logger import get_logger
 
 # Imports dos handlers
-from src.handlers.router.handler import RouterHandler
-from src.handlers.sintomas.handler import SintomasHandler
+from src.Application.Router.RouterAgentHandler import RouterAgentHandler
+from src.Application.Sintomas.SintomasAgentHandler import SintomasAgentHandler
 
-# Imports dos prompts e configs (placeholders)
-from src.agents.router.prompt import ROUTER_PROMPT
-from src.agents.router.config import ROUTER_CONFIG
-
-from src.agents.sintomas.prompt import SINTOMAS_PROMPT
-from src.agents.sintomas.config import SINTOMAS_CONFIG
+# Imports dos prompts e configs
+from src.SharedKernel.AgentsConfig.RouterAgentConfig import ROUTER_PROMPT, ROUTER_CONFIG
+from src.SharedKernel.AgentsConfig.SintomasAgentConfig import SINTOMAS_PROMPT, SINTOMAS_CONFIG
 
 class Registry:
     """
@@ -38,8 +35,8 @@ class Registry:
         
         # Mapeamento de nomes para classes de handlers
         self.handler_types: Dict[str, Type[Handler]] = {
-            "router": RouterHandler,
-            "sintomas": SintomasHandler,
+            "router": RouterAgentHandler,
+            "sintomas": SintomasAgentHandler,
         }
 
         # Mapeamento de nomes para configurações de agents

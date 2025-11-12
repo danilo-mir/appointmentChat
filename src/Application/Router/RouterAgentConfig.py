@@ -1,3 +1,11 @@
+from src.SharedKernel.AgentsConfig.base_agent import AgentConfig
+
+ROUTER_CONFIG = AgentConfig(
+    model="gemini-2.5-flash",
+    temperature=0.7,
+    max_tokens=2000
+) 
+
 ROUTER_PROMPT = """
 Você é um classificador de mensagens para um sistema de chat sobre Programação Orientada a Objetos.
 Sua única função é **classificar a mensagem do usuário** em categorias, considerando TODO o contexto da conversa.

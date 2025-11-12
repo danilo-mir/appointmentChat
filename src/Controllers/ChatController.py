@@ -1,10 +1,10 @@
 from typing import List, Dict, Optional
-from src.handlers.base_handler import Handler
-from src.agents.base_agent import HandlerType
-from src.registry import Registry
-from src.utils.exceptions import HandlerNotFoundError, MessageProcessingError
-from src.utils.logger import get_logger
-from src.utils.observer import MessageSubject, LoggingObserver
+from src.Application.base_handler import Handler
+from src.SharedKernel.AgentsConfig.base_agent import HandlerType
+from src.SharedKernel.AgentsConfig.registry import Registry
+from src.SharedKernel.Messages.Exceptions import HandlerNotFoundError, MessageProcessingError
+from src.SharedKernel.Logging.Logger import get_logger
+from src.SharedKernel.Observer.Observer import MessageSubject, LoggingObserver
 
 class ChatController:
     """

@@ -5,7 +5,7 @@ from enum import Enum
 import os
 import asyncio
 import openai
-from src.utils.logger import get_logger
+from src.SharedKernel.Logging.Logger import get_logger
 from google import genai
 from google.genai import types
 
