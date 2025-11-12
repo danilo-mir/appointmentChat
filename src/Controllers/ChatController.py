@@ -1,7 +1,7 @@
 from typing import List, Dict, Optional
-from src.Application.base_handler import Handler
-from src.SharedKernel.AgentsConfig.base_agent import HandlerType
-from src.SharedKernel.AgentsConfig.registry import Registry
+from src.Application.Abstractions.BaseHandler import Handler
+from src.Application.Abstractions.BaseAgent import HandlerType
+from src.Application.Abstractions.Registry import Registry
 from src.SharedKernel.Messages.Exceptions import HandlerNotFoundError, MessageProcessingError
 from src.SharedKernel.Logging.Logger import get_logger
 from src.SharedKernel.Observer.Observer import MessageSubject, LoggingObserver

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from src.SharedKernel.AgentsConfig.base_agent import AgentResponse, Agent
+from src.Application.Abstractions.BaseAgent import AgentResponse, Agent
 
 class Handler(ABC):
     def __init__(self, agent: Agent):

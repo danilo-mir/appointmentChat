@@ -1,6 +1,6 @@
 from typing import List
-from src.SharedKernel.AgentsConfig.base_agent import AgentResponse, HandlerType
-from src.Application.base_handler import Handler
+from src.Application.Abstractions.BaseAgent import AgentResponse, HandlerType
+from src.Application.Abstractions.BaseHandler import Handler
 from src.SharedKernel.Logging.Logger import get_logger
 
 

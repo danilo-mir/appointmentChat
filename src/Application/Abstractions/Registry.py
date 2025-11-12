@@ -1,7 +1,7 @@
 # src/registry.py
 from typing import Dict, Type, Tuple, Optional
-from src.Application.base_handler import Handler
-from src.SharedKernel.AgentsConfig.base_agent import Agent, GeminiAgent
+from src.Application.Abstractions.BaseHandler import Handler
+from src.Application.Abstractions.BaseAgent import Agent, GeminiAgent
 from src.SharedKernel.Messages.Exceptions import HandlerNotFoundError, AgentConfigurationError
 from src.SharedKernel.Logging.Logger import get_logger
 
@@ -10,8 +10,8 @@ from src.Application.Router.RouterAgentHandler import RouterAgentHandler
 from src.Application.Sintomas.SintomasAgentHandler import SintomasAgentHandler
 
 # Imports dos prompts e configs
-from src.SharedKernel.AgentsConfig.RouterAgentConfig import ROUTER_PROMPT, ROUTER_CONFIG
-from src.SharedKernel.AgentsConfig.SintomasAgentConfig import SINTOMAS_PROMPT, SINTOMAS_CONFIG
+from src.Application.Router.RouterAgentConfig import ROUTER_PROMPT, ROUTER_CONFIG
+from src.Application.Sintomas.SintomasAgentConfig import SINTOMAS_PROMPT, SINTOMAS_CONFIG
 
 class Registry:
     """
