@@ -10,7 +10,7 @@ class PatientRepository:
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    'SELECT "patientID", disease FROM patients WHERE "patientID" = %s',
+                    'SELECT "patient_id", disease FROM patients WHERE "patient_id" = %s',
                     (str(patient_id),),
                 )
                 row = cur.fetchone()
@@ -21,7 +21,7 @@ class PatientRepository:
     def list_all(self) -> List[Patient]:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute('SELECT "patientID", disease FROM patients ORDER BY "patientID"')
+                cur.execute('SELECT "patient_id", disease FROM patients ORDER BY "patient_id"')
                 rows = cur.fetchall()
                 return [Patient(patient_id=r[0], disease=r[1]) for r in rows]
 

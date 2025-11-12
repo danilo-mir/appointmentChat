@@ -9,7 +9,6 @@ from src.SharedKernel.Logging.Logger import get_logger
 from google import genai
 from google.genai import types
 
-
 class HandlerType(Enum):
     NEXT = "next"
     FINAL = "final"

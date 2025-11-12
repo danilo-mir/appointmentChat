@@ -18,6 +18,9 @@ class ChatController:
     """
     
     def __init__(self):
+        self.begin_of_appointment = True
+        self.symptoms_list = []
+
         self.logger = get_logger(__name__)
         self.registry = Registry()
         self.handlers: Dict[str, Handler] = {}
@@ -27,6 +30,7 @@ class ChatController:
         self.message_subject.attach(LoggingObserver(self.logger))
         
         self.logger.info("💬 Chat inicializado e pronto para uso")
+
 
     def get_handler(self, handler_type: str) -> Handler:
         """
@@ -43,7 +47,7 @@ class ChatController:
         """
         try:
             if handler_type not in self.handlers:
-                self.handlers[handler_type] = self.registry.create_handler(handler_type)
+                self.handlers[handler_type] = self.registry.create_handler(handler_type, symptoms_list=self.symptoms_list)
             return self.handlers[handler_type]
         except Exception as e:
             raise HandlerNotFoundError(f"Não foi possível obter o handler: {str(e)}")
@@ -62,19 +66,26 @@ class ChatController:
             MessageProcessingError: Se houver erro no processamento da mensagem
         """
         try:
-            current_handler = "router"
+            if self.begin_of_appointment:
+                current_handler = "get_random_patient"
+                self.begin_of_appointment = False
+            else:
+                current_handler = "router"
             user_message = context[-1] if context else ""
             
             # Notifica sobre a mensagem do usuário
             self.message_subject.notify(
                 message=user_message,
                 role="user"
-            )
+            )   
             
             while True:
                 handler = self.get_handler(current_handler)
                 response = await handler.handle(context)
-                
+
+                if current_handler == 'get_random_patient':
+                    self.symptoms_list = response.message
+                    
                 # Notifica sobre a resposta do handler
                 if response.message:
                     self.message_subject.notify(

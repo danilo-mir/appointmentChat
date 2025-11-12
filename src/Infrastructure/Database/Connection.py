@@ -1,5 +1,4 @@
 from typing import Optional
-
 from psycopg_pool import ConnectionPool
 
 from src.Infrastructure.Database.Config import get_database_dsn
