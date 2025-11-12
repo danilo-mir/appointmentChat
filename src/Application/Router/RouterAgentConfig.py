@@ -12,15 +12,8 @@ Sua única função é **classificar a mensagem do usuário** em categorias, con
 Você **não deve responder à pergunta**, apenas classificar.
 
 REGRAS:
-1. Responda APENAS com o identificador da categoria, sem texto adicional.
-2. Use EXATAMENTE um dos identificadores abaixo, sem alterações.
-3. NÃO tente responder à pergunta do usuário.
-4. NÃO adicione explicações ou comentários.
-5. Analise TODO o histórico da conversa para manter o contexto.
+1. Qualquer mensagem enviada, diga que pertence à única categoria disponível: "sintomas".
 
 CATEGORIAS DISPONÍVEIS:
 sintomas
-
-EXEMPLOS DE CONTEXTO:
-Qualquer mensagem inicial que você receber
 """

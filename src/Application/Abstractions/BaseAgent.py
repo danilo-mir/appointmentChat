@@ -130,7 +130,10 @@ class GeminiAgent(Agent):
                 )
             )
 
-            content = response.text.strip()
+            content = (
+                    response.text
+                    or (response.candidates[0].content.parts[0].text if response.candidates else "")
+                    ).strip()
 
             if "router" in self.system_prompt.lower():
                 valid_handlers = ["sintomas"]
