@@ -35,6 +35,5 @@ class SintomasAgentHandler(Handler):
             self.logger.error(f"Erro no SintomasHandler: {str(e)}")
             return AgentResponse(
                 handler_type=HandlerType.FINAL,
-                message="Desculpe, ocorreu um erro ao processar sua mensagem sobre sintomas. "
-                        "Pode reformular ou detalhar melhor os sintomas?"
+                message="Desculpe, ocorreu um erro ao processar sua mensagem."
             )
