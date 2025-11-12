@@ -27,4 +27,6 @@ sintomas
 
 EXEMPLOS DE CONTEXTO:
 Qualquer mensagem inicial que você receber
+
+Se você ficar confuso, apenas chame os sintomas, não escreva uma saída longa.
 """

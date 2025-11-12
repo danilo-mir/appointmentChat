@@ -3,8 +3,6 @@ from src.Application.Abstractions.BaseAgent import AgentResponse, HandlerType
 from src.Application.Abstractions.BaseHandler import Handler
 from src.SharedKernel.Logging.Logger import get_logger
 
-
-
 class SintomasAgentHandler(Handler):
     """
     Handler responsável por processar mensagens relacionadas aos sintomas do paciente
