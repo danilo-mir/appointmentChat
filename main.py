@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import asyncio
+import time
 from dotenv import load_dotenv
 from src.Controllers.ChatController import ChatController
 from src.SharedKernel.Messages.Exceptions import POOChatException
