@@ -6,7 +6,19 @@ SINTOMAS_CONFIG = AgentConfig(
     max_tokens=2000
 ) 
 
-symptoms = "\n- " + "\n- ".join(symptom_list)
+symptoms = """
+febre
+dor de cabeça
+dor no peito
+cansaço
+sonolência
+náusea
+pontadas no lado esquerdo do peito
+"""
+
+disease = "ataque cardiaco"
+
+# symptoms = "\n- " + "\n- ".join(symptom_list)
 
 SINTOMAS_PROMPT = f"""
 Leia com atenção os detalhes escritos abaixo, execute as ações da forma exata como foram pedidas e se comporte da forma especificada.
