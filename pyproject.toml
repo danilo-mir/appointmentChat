@@ -1,0 +1,14 @@
+[project]
+name = "appointment-chat"
+version = "0.1.0"
+description = "Meu app de chat"
+authors = [
+    { name="José Alberto", email="seu_email@example.com" }
+]
+dependencies = [
+    "streamlit"
+]
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
