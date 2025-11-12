@@ -8,6 +8,9 @@ import openai
 from src.SharedKernel.Logging.Logger import get_logger
 from google import genai
 from google.genai import types
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class HandlerType(Enum):
     NEXT = "next"
@@ -127,7 +130,10 @@ class GeminiAgent(Agent):
                 )
             )
 
-            content = response.text.strip()
+            content = (
+                    response.text
+                    or (response.candidates[0].content.parts[0].text if response.candidates else "")
+                    ).strip()
 
             if "router" in self.system_prompt.lower():
                 valid_handlers = ["sintomas"]

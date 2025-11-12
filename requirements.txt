@@ -1,13 +1,19 @@
 aiohttp==3.13.2
+-e .
 appointment-chat==0.1.0
 backports.tarfile==1.2.0
 colorama==0.4.6
+fastapi
 google-genai==1.49.0
 importlib-metadata==8.0.0
 jaraco.collections==5.1.0
 openai==2.7.2
+pydantic
 pip-chill==1.0.3
-pipreqs==0.5.0
+psycopg[binary]
 python-dotenv==1.2.1
+requests
+streamlit
 tinycss2==1.4.0
 tomli==2.0.1
+uvicorn[standard]
