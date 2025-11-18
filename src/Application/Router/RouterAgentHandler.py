@@ -49,7 +49,7 @@ class RouterAgentHandler(Handler):
             self.current_handler = "sintomas"
             return AgentResponse(
                 handler_type=HandlerType.NEXT,
-                next_handler=self.current_handler
+                next_handler=self.current_handler,
             )
     
     def _is_follow_up_question(self, message: str) -> bool:

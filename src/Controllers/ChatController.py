@@ -1,7 +1,7 @@
 from typing import List, Dict, Optional
 from src.Application.Abstractions.BaseHandler import Handler
 from src.Application.Abstractions.BaseAgent import HandlerType
-from src.Application.Abstractions.Registry import Registry
+from src.Application.Abstractions.HandlerFactory import HandlerFactory
 from src.SharedKernel.Messages.Exceptions import HandlerNotFoundError, MessageProcessingError
 from src.SharedKernel.Logging.Logger import get_logger
 from src.SharedKernel.Observer.Observer import MessageSubject, LoggingObserver
@@ -12,23 +12,30 @@ class ChatController:
     entre handlers e manter o estado da conversa.
     
     Attributes:
-        registry: Instância do Registry para criar handlers
+        handler_factor: Instância do HandlerFactory para criar handlers
         handlers: Dicionário de handlers ativos
         message_subject: Subject para notificação de observadores
     """
     
     def __init__(self):
         self.logger = get_logger(__name__)
-        self.registry = Registry()
+        self.handler_factory = HandlerFactory()
         self.handlers: Dict[str, Handler] = {}
         
         # Configuração do sistema de observadores
         self.message_subject = MessageSubject()
         self.message_subject.attach(LoggingObserver(self.logger))
+
+        # Kwargs a serem adicionados em prompts
+        # Vai ser obtido por ex do handler do random symptom
+        self.prompt_data = {
+            "symptoms_list": ["retal pain"],
+            "disease": "ligma"
+        }
         
         self.logger.info("💬 Chat inicializado e pronto para uso")
 
-    def get_handler(self, handler_type: str) -> Handler:
+    def get_handler(self, handler_type: str, agent_type: str, prompt_data: dict[str, object]) -> Handler:
         """
         Obtém um handler existente ou cria um novo se necessário.
         
@@ -43,7 +50,7 @@ class ChatController:
         """
         try:
             if handler_type not in self.handlers:
-                self.handlers[handler_type] = self.registry.create_handler(handler_type)
+                self.handlers[handler_type] = self.handler_factory.create_handler(handler_type=handler_type, agent_type=agent_type, prompt_data=prompt_data)
             return self.handlers[handler_type]
         except Exception as e:
             raise HandlerNotFoundError(f"Não foi possível obter o handler: {str(e)}")
@@ -62,7 +69,7 @@ class ChatController:
             MessageProcessingError: Se houver erro no processamento da mensagem
         """
         try:
-            current_handler = "router"
+            current_handler_type = "router"
             user_message = context[-1] if context else ""
             
             # Notifica sobre a mensagem do usuário
@@ -72,7 +79,7 @@ class ChatController:
             )
             
             while True:
-                handler = self.get_handler(current_handler)
+                handler = self.get_handler(handler_type=current_handler_type, agent_type='gemini', prompt_data=self.prompt_data)
                 response = await handler.handle(context)
                 
                 # Notifica sobre a resposta do handler
@@ -85,7 +92,7 @@ class ChatController:
                 if response.handler_type == HandlerType.FINAL:
                     return response.message
                 
-                current_handler = response.next_handler
+                current_handler_type = response.next_handler
                 
         except Exception as e:
             raise MessageProcessingError(f"Erro ao processar mensagem: {str(e)}") 

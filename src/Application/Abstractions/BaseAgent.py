@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 from enum import Enum
 import os
@@ -19,6 +19,7 @@ class AgentResponse:
     handler_type: HandlerType
     next_handler: Optional[str] = None
     message: Optional[str] = None
+    payload: dict = field(default_factory=dict)
 
 @dataclass
 class AgentConfig:
@@ -132,7 +133,7 @@ class GeminiAgent(Agent):
                     response.text
                     or (response.candidates[0].content.parts[0].text if response.candidates else "")
                     ).strip()
-
+            
             if "router" in self.system_prompt.lower():
                 valid_handlers = ["sintomas"]
                 handler = content.lower().strip()
