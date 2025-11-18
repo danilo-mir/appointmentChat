@@ -1,17 +1,16 @@
-import random
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from typing import Any
-from src.Application.Abstractions.Tools.ToolInterface import ToolInterface, ToolResponse
+from dataclasses import dataclass
 
-class GetRandomSymptomTool(ToolInterface):
-    def __init__(self, symptoms_list: list[str] = None):
-        super().__init__()
-        self.symptoms_list = symptoms_list or [
-            "headache", "fever", "nausea", "fatigue", "retal pain"
-        ]
+@dataclass
+class ToolResponse:
+    payload: dict = field(default_factory=dict)
 
-    async def execute(self, input_data: Any = None) -> ToolResponse:
-        # Seleciona aleatoriamente um sintoma
-        symptom = random.choice(self.symptoms_list)
+class ToolInterface(ABC):
+    def __init__(self):
+        pass
 
-        # Retorna dentro do payload
-        return ToolResponse(payload={"symptom_list": symptom_list})
+    @abstractmethod
+    async def execute(self, input_data: Any) -> ToolResponse:
+        pass

@@ -12,11 +12,11 @@ class PatientSymptomRepository:
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT s."symptomID", s."symptomNAME"
+                    SELECT s."symptom_id", s."symptom_name"
                     FROM patient_symptoms ps
-                    JOIN symptoms s ON s."symptomID" = ps.symptom_id
+                    JOIN symptoms s ON s."symptom_id" = ps.symptom_id
                     WHERE ps.patient_id = %s
-                    ORDER BY s."symptomNAME"
+                    ORDER BY s."symptom_name"
                     """,
                     (str(patient_id),),
                 )
@@ -28,11 +28,11 @@ class PatientSymptomRepository:
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT p."patientID", p.disease
+                    SELECT p."patient_id", p.disease
                     FROM patient_symptoms ps
                     JOIN patients p ON p."patientID" = ps.patient_id
                     WHERE ps.symptom_id = %s
-                    ORDER BY p."patientID"
+                    ORDER BY p."patient_id"
                     """,
                     (str(symptom_id),),
                 )

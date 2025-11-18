@@ -105,6 +105,6 @@ Mas lembrando, seja sempre cordial e apropriado.
 
 OBS. DADOS IMPORTANTES
 Aqui estão os dados de sintomas e da doença
-sintomas aqui: {"\n- " + "\n- ".join(kwargs["symptoms_list"])}
+sintomas aqui: {"\n- " + "\n- ".join(kwargs["symptom_list"])}
 doença aqui: {kwargs["disease"]}
 """
