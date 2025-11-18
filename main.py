@@ -1,19 +1,12 @@
 import streamlit as st
-import os
+import requests
 import asyncio
-from dotenv import load_dotenv
-from src.Controllers.ChatController import ChatController
-from src.SharedKernel.Messages.Exceptions import POOChatException
 from src.SharedKernel.Logging.Logger import get_logger
+
+BACKEND_URL = "http://localhost:8000/chat"
 
 # Configuração do logger
 logger = get_logger(__name__)
-
-# Carrega variáveis de ambiente
-load_dotenv()
-
-# Configuração do controller
-controller = ChatController()
 
 # CSS personalizado
 st.markdown("""
@@ -124,13 +117,25 @@ def display_typing_indicator():
         </div>
     """, unsafe_allow_html=True)
 
-async def process_message_async(messages):
-    """Processa a mensagem de forma assíncrona."""
+
+def send_message_to_backend(messages):
+    """
+    Envia a lista de mensagens para o backend FastAPI e retorna a resposta.
+    """
+    payload = {
+        "messages": [
+            {"role": "user", "content": msg}
+            for msg in messages
+        ]
+    }
+
     try:
-        response = await controller.process_message(messages)
-        return response, None
-    except Exception as e:
-        return None, str(e)
+        response = requests.post(BACKEND_URL, json=payload, timeout=20)
+        response.raise_for_status()
+        data = response.json()
+        return data["content"]
+    except requests.exceptions.RequestException as e:
+        return f"Erro ao conectar ao backend: {e}"
 
 def main():
     """Função principal da aplicação."""
@@ -182,19 +187,16 @@ def main():
                 context = [msg["content"] for msg in st.session_state.messages]
                 
                 # Processa a mensagem com o contexto
-                response, error = asyncio.run(process_message_async(context))
-                
-                if error:
-                    error_msg = f"Erro ao processar mensagem: {error}"
-                    st.session_state.messages.append({"role": "assistant", "content": error_msg})
-                else:
-                    st.session_state.messages.append({"role": "assistant", "content": response})
+                response = send_message_to_backend(context)
+
+                # Adiciona a resposta do backend ao histórico
+                st.session_state.messages.append({"role": "assistant", "content": response})
                 
                 # Reexibe todas as mensagens com a nova resposta
                 st.rerun()
                 
             except Exception as e:
-                error_msg = "Desculpe, ocorreu um erro inesperado. Por favor, tente novamente."
+                error_msg = f"Ocorreu um erro: {str(e)}"
                 st.session_state.messages.append({"role": "assistant", "content": error_msg})
                 st.rerun()
         
