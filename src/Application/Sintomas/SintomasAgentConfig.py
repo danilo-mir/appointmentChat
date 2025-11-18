@@ -1,4 +1,4 @@
-from src.Application.Abstractions.BaseAgent import AgentConfig
+from src.Application.Abstractions.Agents.AgentInterface import AgentConfig
 
 SINTOMAS_CONFIG = AgentConfig(
     model="gemini-2.5-flash",

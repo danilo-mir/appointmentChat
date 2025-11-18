@@ -1,6 +1,6 @@
-from typing import List, Dict, Optional
-from src.Application.Abstractions.BaseHandler import Handler
-from src.Application.Abstractions.BaseAgent import HandlerType
+from typing import List, Dict
+from src.Application.Abstractions.Handlers.HandlerInterface import Handler
+from src.Application.Abstractions.Handlers.HandlerInterface import HandlerType
 from src.Application.Abstractions.HandlerFactory import HandlerFactory
 from src.SharedKernel.Messages.Exceptions import HandlerNotFoundError, MessageProcessingError
 from src.SharedKernel.Logging.Logger import get_logger

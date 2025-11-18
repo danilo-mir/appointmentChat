@@ -1,13 +1,15 @@
 # src/HandlerFactory.py
 from typing import Dict, Type, Tuple, Optional
-from src.Application.Abstractions.BaseHandler import Handler
-from src.Application.Abstractions.BaseAgent import Agent, GeminiAgent, OpenAIAgent
+from src.Application.Abstractions.Handlers.HandlerInterface import Handler
+from src.Application.Abstractions.Agents.AgentInterface import AgentInterface
+from src.Application.Abstractions.Agents.GeminiAgent import GeminiAgent
+from src.Application.Abstractions.Agents.OpenAiAgent import OpenAIAgent
 from src.SharedKernel.Messages.Exceptions import HandlerNotFoundError, AgentConfigurationError, AgentTypeNotFoundError
 from src.SharedKernel.Logging.Logger import get_logger
 
 # Imports dos handlers
-from src.Application.Router.RouterAgentHandler import RouterAgentHandler
-from src.Application.Sintomas.SintomasAgentHandler import SintomasAgentHandler
+from src.Application.Abstractions.Handlers.RouterAgentHandler import RouterAgentHandler
+from src.Application.Abstractions.Handlers.SintomasAgentHandler import SintomasAgentHandler
 
 # Imports dos prompts e configs
 from src.Application.Router.RouterAgentConfig import ROUTER_CONFIG, GET_ROUTER_PROMPT
@@ -30,7 +32,7 @@ class HandlerFactory:
         }
 
         # Mapeamento de nomes para tipos de agents
-        self.agent_types: dict[str, type[Agent]] = {
+        self.agent_types: dict[str, type[AgentInterface]] = {
             "gemini": GeminiAgent,
             "gpt": OpenAIAgent,
         }
