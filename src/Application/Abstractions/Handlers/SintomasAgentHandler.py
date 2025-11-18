@@ -8,7 +8,7 @@ from src.Application.Abstractions.Agents.GeminiAgent import GeminiAgent
 SUMMARY_CONFIG = AgentConfig(
     model="gemini-2.5-flash",
     temperature=0.3,
-    max_tokens=500
+    max_tokens=20000
 )
 
 SUMMARY_PROMPT = """

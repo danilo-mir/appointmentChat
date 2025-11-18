@@ -10,12 +10,13 @@ from src.SharedKernel.Logging.Logger import get_logger
 # Imports dos handlers
 from src.Application.Abstractions.Handlers.RouterAgentHandler import RouterAgentHandler
 from src.Application.Abstractions.Handlers.SintomasAgentHandler import SintomasAgentHandler
-from src.Application.Abstractions.Handlers.GetRandomSymptomsHandler import GetRandomSymptomsHandler
+from src.Application.Abstractions.Handlers.GetRandomSymptomsToolHandler import GetRandomSymptomsHandler
+from src.Application.Abstractions.Handlers.FallbackAgentHandler import FallbackAgentHandler
 
 # Imports dos prompts e configs
 from src.Application.Router.RouterAgentConfig import ROUTER_CONFIG, GET_ROUTER_PROMPT
 from src.Application.Sintomas.SintomasAgentConfig import SINTOMAS_CONFIG, GET_SINTOMAS_PROMPT
-
+from src.Application.Fallback.FallbackAgentConfig import FALLBACK_CONFIG, GET_FALLBACK_PROMPT
 
 class HandlerFactory:    
     def __init__(self):
@@ -25,12 +26,14 @@ class HandlerFactory:
         self.agent_handler_types: Dict[str, Type[Handler]] = {
             "router": RouterAgentHandler,
             "sintomas": SintomasAgentHandler,
+            "fallback": FallbackAgentHandler
         }
 
         # Configs para cada handler com agente
         self.agent_configs: Dict[str, Tuple[dict, callable]] = {
             "router": (ROUTER_CONFIG, GET_ROUTER_PROMPT),
             "sintomas": (SINTOMAS_CONFIG, GET_SINTOMAS_PROMPT),
+            "fallback": (FALLBACK_CONFIG, GET_FALLBACK_PROMPT)
         }
 
         # Tipos de agents disponíveis
@@ -51,7 +54,7 @@ class HandlerFactory:
             # --- Caso handler seja apenas tool ---
             if handler_type in self.tool_only_handlers:
                 handler_class = self.tool_only_handlers[handler_type]
-                return handler_class(agent=None)  # agent=None é aceito pelo handler tool
+                return handler_class(agent=None)
 
             # --- Caso handler use agente ---
             if handler_type not in self.agent_handler_types:
