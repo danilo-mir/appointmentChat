@@ -1,5 +1,6 @@
 # backend/main.py
 from typing import List, Optional
+import os
 import uvicorn
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
@@ -28,12 +29,16 @@ async def lifespan(app: FastAPI):
     yield  # <-- aqui o app fica rodando
     print("🛑 Encerrando o backend...")
 
-app = FastAPI(title="POO Chat Backend", lifespan=lifespan)
+app = FastAPI(title="AppointmentChat", lifespan=lifespan)
 
 # Permita chamadas do Streamlit (ajuste origem em produção)
+# Permita chamadas do Streamlit (ajuste origem em produção)
+# Use env var ALLOW_ORIGINS (separada por vírgula) ou padrão local
+origins_env = os.getenv("ALLOW_ORIGINS", "http://localhost:8501")
+allow_origins = [o.strip() for o in origins_env.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8501"],  # URL     do Streamlit em dev
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
