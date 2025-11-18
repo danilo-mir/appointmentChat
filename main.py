@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import asyncio
-import time
 from dotenv import load_dotenv
 from src.Controllers.ChatController import ChatController
 from src.SharedKernel.Messages.Exceptions import POOChatException
@@ -128,10 +127,7 @@ def display_typing_indicator():
 async def process_message_async(messages):
     """Processa a mensagem de forma assíncrona."""
     try:
-        start_time = time.time()
         response = await controller.process_message(messages)
-        elapsed_time = time.time() - start_time
-        print(f"⏱️  API Response Time: {elapsed_time:.2f}s")
         return response, None
     except Exception as e:
         return None, str(e)

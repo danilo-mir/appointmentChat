@@ -8,9 +8,7 @@ import openai
 from src.SharedKernel.Logging.Logger import get_logger
 from google import genai
 from google.genai import types
-from dotenv import load_dotenv
 
-load_dotenv()
 
 class HandlerType(Enum):
     NEXT = "next"
