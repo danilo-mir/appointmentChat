@@ -1,15 +1,14 @@
 from typing import List
-from src.Application.Abstractions.BaseAgent import AgentResponse, HandlerType
-from src.Application.Abstractions.BaseHandler import Handler
+from src.Application.Abstractions.Handlers.HandlerInterface import Handler, HandlerResponse, HandlerType
 from src.SharedKernel.Logging.Logger import get_logger
-from src.Application.Abstractions.BaseAgent import AgentConfig
-from src.Application.Abstractions.BaseAgent import GeminiAgent
+from src.Application.Abstractions.Agents.AgentInterface import AgentConfig
+from src.Application.Abstractions.Agents.GeminiAgent import GeminiAgent
 
-# Config for summarization agent (can reuse gemini-2.5-flash)
+# Configuração para o agente de sumarização
 SUMMARY_CONFIG = AgentConfig(
     model="gemini-2.5-flash",
     temperature=0.3,
-    max_tokens=500
+    max_tokens=20000
 )
 
 SUMMARY_PROMPT = """
@@ -26,16 +25,16 @@ class SintomasAgentHandler(Handler):
     Handler responsável por processar mensagens relacionadas aos sintomas do paciente
     durante a anamnese, incluindo histórico de perguntas e respostas sobre sintomas.
     """
-    
+
     def __init__(self, agent):
         super().__init__(agent)
         self.logger = get_logger(__name__)
-        self.memory_summary = ""  # 🧠 store summarized memory
-        self.max_context_length = 50  # how many turns before summarizing again
+        self.memory_summary = ""  # 🧠 Armazena resumo da conversa
+        self.max_context_length = 50  # Quantas mensagens antes de resumir novamente
 
-        # Create a summarization agent
+        # Cria um agente de sumarização separado
         self.summary_agent = GeminiAgent(SUMMARY_CONFIG, SUMMARY_PROMPT)
-        
+
     async def summarize_context(self, context: List[str]) -> str:
         """Usa o modelo Gemini para resumir o histórico de conversa."""
         try:
@@ -47,47 +46,49 @@ class SintomasAgentHandler(Handler):
             return summary
         except Exception as e:
             self.logger.error(f"Erro ao resumir contexto: {str(e)}")
-            # Fallback: just truncate if summarization fails
+            # Fallback: apenas pegar as últimas mensagens
             return " ".join(context[-2:])
-        
-    async def handle(self, context: List[str]) -> AgentResponse:
+
+    async def handle(self, context: List[str]) -> HandlerResponse:
         """
         Processa a mensagem considerando o contexto da conversa e o histórico
         de perguntas e respostas sobre sintomas do paciente.
+        Retorna sempre um HandlerResponse.
         """
         try:
-            # --- Step 1: combine memory + new user context ---
+            # --- Step 1: combinar memória + contexto atual ---
             working_context = []
             if self.memory_summary:
                 working_context.append(f"[Resumo anterior da conversa: {self.memory_summary}]")
-            
-            # Append the latest messages
             working_context.extend(context)
 
-            # --- Step 2: Process with the main agent ---
-            response = await self.agent.process(working_context)
+            # --- Step 2: Processar com o agente principal ---
+            agent_response = await self.agent.process(working_context)
 
-            # --- Step 3: Decide if we should summarize ---
+            # --- Step 3: Decidir se deve resumir ---
             if len(context) >= self.max_context_length:
-                # Summarize both old memory + current conversation
                 all_text = []
                 if self.memory_summary:
                     all_text.append(self.memory_summary)
                 all_text.extend(context)
                 self.memory_summary = await self.summarize_context(all_text)
-                # Clear context to avoid infinite growth
+
+                # Limpar contexto para evitar crescimento infinito
                 context.clear()
                 context.append(f"[Resumo atualizado: {self.memory_summary}]")
 
-            # --- Step 4: Log and return ---
-            self.logger.info(
-                f"Processada mensagem sobre sintomas do paciente: {context[-1]}"
+            self.logger.info(f"Processada mensagem sobre sintomas: {context[-1]}")
+
+            # --- Step 4: Retornar como HandlerResponse ---
+            return HandlerResponse(
+                handler_type=HandlerType.FINAL,
+                message=agent_response.message,
+                next_handler="sintomas"  # ou outro handler se necessário
             )
-            return response
-            
+
         except Exception as e:
             self.logger.error(f"Erro no SintomasHandler: {str(e)}")
-            return AgentResponse(
+            return HandlerResponse(
                 handler_type=HandlerType.FINAL,
-                message="Desculpe, ocorreu um erro ao processar sua mensagem."
+                message="Desculpe, ocorreu um erro ao processar sua mensagem.",
             )

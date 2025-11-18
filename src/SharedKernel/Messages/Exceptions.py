@@ -6,6 +6,10 @@ class HandlerNotFoundError(POOChatException):
     """Exceção lançada quando um handler não é encontrado."""
     pass
 
+class AgentTypeNotFoundError(POOChatException):
+    """Exceção lançada quando uma configuração de agente não é encontrada."""
+    pass
+
 class AgentConfigurationError(POOChatException):
     """Exceção lançada quando há erro na configuração de um agente."""
     pass

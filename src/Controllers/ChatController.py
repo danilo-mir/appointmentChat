@@ -1,7 +1,7 @@
-from typing import List, Dict, Optional
-from src.Application.Abstractions.BaseHandler import Handler
-from src.Application.Abstractions.BaseAgent import HandlerType
-from src.Application.Abstractions.Registry import Registry
+from typing import List, Dict
+from src.Application.Abstractions.Handlers.HandlerInterface import Handler
+from src.Application.Abstractions.Handlers.HandlerInterface import HandlerType
+from src.Application.Abstractions.HandlerFactory import HandlerFactory
 from src.SharedKernel.Messages.Exceptions import HandlerNotFoundError, MessageProcessingError
 from src.SharedKernel.Logging.Logger import get_logger
 from src.SharedKernel.Observer.Observer import MessageSubject, LoggingObserver
@@ -12,57 +12,52 @@ class ChatController:
     entre handlers e manter o estado da conversa.
     
     Attributes:
-        registry: Instância do Registry para criar handlers
-        handlers: Dicionário de handlers ativos
+        handler_factory: Instância do HandlerFactory para criar handlers
         message_subject: Subject para notificação de observadores
     """
     
     def __init__(self):
         self.logger = get_logger(__name__)
-        self.registry = Registry()
-        self.handlers: Dict[str, Handler] = {}
+        self.handler_factory = HandlerFactory()
         
         # Configuração do sistema de observadores
         self.message_subject = MessageSubject()
         self.message_subject.attach(LoggingObserver(self.logger))
+
+        # Kwargs a serem adicionados em prompts
+        # Vai ser obtido por ex do handler do random symptom
+        # self.prompt_data = {
+        #     "symptom_list": ["retal pain"],
+        #     "disease": "ligma"
+        # }
+
+        # Imagino que essas variaveis NAO devam ficar no controller pq tao armazenando memoria @Buzz
+        # Mas funciona por enquanto
+        self.conversation_started = False
+        self.data = {
+            "symptom_list": {},
+            "disease": {},
+        }
         
         self.logger.info("💬 Chat inicializado e pronto para uso")
 
-    def get_handler(self, handler_type: str) -> Handler:
-        """
-        Obtém um handler existente ou cria um novo se necessário.
-        
-        Args:
-            handler_type: Tipo do handler desejado
-            
-        Returns:
-            Handler: Instância do handler solicitado
-            
-        Raises:
-            HandlerNotFoundError: Se o tipo de handler não for válido
-        """
+    def get_handler(self, handler_type: str, agent_type: str, prompt_data: dict[str, object]) -> Handler:
         try:
-            if handler_type not in self.handlers:
-                self.handlers[handler_type] = self.registry.create_handler(handler_type)
-            return self.handlers[handler_type]
+            return self.handler_factory.create_handler(
+                handler_type=handler_type,
+                agent_type=agent_type,
+                prompt_data=prompt_data
+            )
         except Exception as e:
-            raise HandlerNotFoundError(f"Não foi possível obter o handler: {str(e)}")
+            raise HandlerNotFoundError(f"Não foi possível criar o handler: {str(e)}")
 
     async def process_message(self, context: List[str]) -> str:
-        """
-        Processa a mensagem através dos handlers até receber uma resposta final.
-        
-        Args:
-            context: Lista de mensagens do histórico da conversa
-            
-        Returns:
-            str: Resposta final do processamento
-            
-        Raises:
-            MessageProcessingError: Se houver erro no processamento da mensagem
-        """
         try:
-            current_handler = "router"
+            if not self.conversation_started:
+                self.conversation_started = True
+                current_handler_type = 'get_random_symptoms_handler'
+            else:
+                current_handler_type = "router"
             user_message = context[-1] if context else ""
             
             # Notifica sobre a mensagem do usuário
@@ -72,8 +67,25 @@ class ChatController:
             )
             
             while True:
-                handler = self.get_handler(current_handler)
+                if current_handler_type == "sintomas":
+                    prompt_data = {
+                        "symptom_list": self.data['symptom_list'],
+                        "disease": self.data['disease']
+                    }
+                else:
+                    prompt_data = {}
+
+                handler = self.get_handler(
+                    handler_type=current_handler_type,
+                    agent_type='gemini',
+                    prompt_data=prompt_data
+                )
+
                 response = await handler.handle(context)
+
+                if current_handler_type == 'get_random_symptoms_handler':
+                    for key in response.payload:
+                        self.data[key] = response.payload[key]
                 
                 # Notifica sobre a resposta do handler
                 if response.message:
@@ -85,7 +97,7 @@ class ChatController:
                 if response.handler_type == HandlerType.FINAL:
                     return response.message
                 
-                current_handler = response.next_handler
+                current_handler_type = response.next_handler
                 
         except Exception as e:
-            raise MessageProcessingError(f"Erro ao processar mensagem: {str(e)}") 
+            raise MessageProcessingError(f"Erro ao processar mensagem: {str(e)}")

@@ -1,26 +1,13 @@
-from src.Application.Abstractions.BaseAgent import AgentConfig
+from src.Application.Abstractions.Agents.AgentInterface import AgentConfig
 
 SINTOMAS_CONFIG = AgentConfig(
     model="gemini-2.5-flash",
     temperature=0.7,
-    max_tokens=2000
+    max_tokens=20000
 ) 
 
-symptoms = """
-febre
-dor de cabeça
-dor no peito
-cansaço
-sonolência
-náusea
-pontadas no lado esquerdo do peito
-"""
-
-disease = "ataque cardiaco"
-
-# symptoms = "\n- " + "\n- ".join(symptom_list)
-
-SINTOMAS_PROMPT = f"""
+def GET_SINTOMAS_PROMPT(**kwargs):
+    return f"""
 Leia com atenção os detalhes escritos abaixo, execute as ações da forma exata como foram pedidas e se comporte da forma especificada.
 
 1. CONTEXTO
@@ -118,6 +105,6 @@ Mas lembrando, seja sempre cordial e apropriado.
 
 OBS. DADOS IMPORTANTES
 Aqui estão os dados de sintomas e da doença
-sintomas aqui: {symptoms}
-doença aqui: {disease}
+sintomas aqui: {"\n- " + "\n- ".join(kwargs["symptom_list"])}
+doença aqui: {kwargs["disease"]}
 """
