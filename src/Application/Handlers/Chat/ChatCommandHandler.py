@@ -5,7 +5,8 @@ from src.Domain.Chatbot.Abstractions.AgentInterface import (
     AgentType,
     AgentResponse,
 )
-from src.Domain.Factories.HandlerFactory import AgentFactory
+from src.Domain.Factories.AgentFactory import AgentFactory
+from src.Infrastructure.Llm.DefaultLlmProviderResolver import DefaultLlmProviderResolver
 from src.SharedKernel.Messages.Exceptions import (
     HandlerNotFoundError,
     MessageProcessingError,
@@ -24,9 +25,11 @@ from src.Infrastructure.Cache.ChatMemoryStore import ChatMemoryStore
 
 class ChatCommandHandler:
     
-    def __init__(self):
+    def __init__(self, agent_factory: Optional[AgentFactory] = None):
         self.logger = get_logger(__name__)
-        self.agent_factory = AgentFactory()
+        self.agent_factory = agent_factory or AgentFactory(
+            llm_provider_resolver=DefaultLlmProviderResolver()
+        )
         
         # Configuração do sistema de observadores
         self.message_subject = MessageSubject()
