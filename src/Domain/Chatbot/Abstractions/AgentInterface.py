@@ -23,8 +23,8 @@ class AgentInterface(ABC):
         self.llm = llm
 
     @abstractmethod
-    async def generate_response(self, context: list[str]) -> AgentResponse:
+    async def generate_response(self, message: str) -> AgentResponse:
         """
-        Gera uma resposta do agente com base no contexto da conversa.
+        Gera uma resposta do agente com base na mensagem do usuário.
         """
         raise NotImplementedError

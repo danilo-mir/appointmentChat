@@ -1,13 +1,25 @@
-from typing import List, Dict
+from typing import Dict, List
+import random
 from src.Domain.Chatbot.Abstractions.AgentInterface import (
     AgentInterface,
-    AgentType as HandlerType,
+    AgentType,
     AgentResponse,
 )
 from src.Domain.Factories.HandlerFactory import AgentFactory
-from src.SharedKernel.Messages.Exceptions import HandlerNotFoundError, MessageProcessingError
+from src.SharedKernel.Messages.Exceptions import (
+    HandlerNotFoundError,
+    MessageProcessingError,
+    AgentConfigurationError,
+    AgentTypeNotFoundError,
+)
 from src.SharedKernel.Logging.Logger import get_logger
 from src.SharedKernel.Observer.Observer import MessageSubject, LoggingObserver
+from src.Application.Handlers.Chat.DTOs_.ChatCommand import ChatCommand
+
+from src.Infrastructure.Repositories.PatientRepositoryPstgres import PatientRepositoryPostgres
+from src.Infrastructure.Repositories.SymptomRepositoryPostgres import SymptomRepositoryPostgres
+from src.Infrastructure.Repositories.PatientSymptomRepositoryPostgres import PatientSymptomRepositoryPostgres
+from src.Domain.Entities.Symptom import Symptom
 
 
 class ChatCommandHandler:
@@ -20,14 +32,11 @@ class ChatCommandHandler:
         self.message_subject = MessageSubject()
         self.message_subject.attach(LoggingObserver(self.logger))
 
-        # Kwargs a serem adicionados em prompts
-        # Vai ser obtido por ex do handler do random symptom
-        # self.prompt_data = {
-        #     "symptom_list": ["retal pain"],
-        #     "disease": "ligma"
-        # }
+        # Repositórios
+        self.patient_repository = PatientRepositoryPostgres()
+        self.patient_symptom_repository = PatientSymptomRepositoryPostgres()
 
-        # Imagino que essas variaveis NAO devam ficar no controller pq tao armazenando memoria @Buzz
+        # Imagino que essas variaveis NAO devam ficar no controller pq tao armazenando memoria
         # Mas funciona por enquanto
         self.conversation_started = False
         self.data = {
@@ -37,56 +46,63 @@ class ChatCommandHandler:
         
         self.logger.info("💬 Chat inicializado e pronto para uso")
 
-        async def handle(self, context: List[str]) -> str:
-            try:
-                if not self.conversation_started:
-                    self.conversation_started = True
-                    current_handler_type = 'get_random_symptoms_handler'
+    async def handle(self, command: ChatCommand) -> str:
+        try:
+            current_agent_type = "router"
+
+            session_id = command.session_id
+            message = command.message
+
+            # TODO: Checar se a session_id já existe no banco de dados
+            symptom_list, disease = self._get_random_user_disease_data()
+            
+            self.data['symptom_list'] = [symptom.symptom_name for symptom in symptom_list]
+            self.data['disease'] = disease
+
+            # Notifica sobre a mensagem do usuário
+            self.message_subject.notify(
+                message=message,
+                role="user"
+            )
+            
+            while True:
+                if current_agent_type == "sintomas":
+                    prompt_data = {
+                        "symptom_list": self.data['symptom_list'],
+                        "disease": self.data['disease']
+                    }
                 else:
-                    current_handler_type = "router"
-                user_message = context[-1] if context else ""
-                
-                # Notifica sobre a mensagem do usuário
-                self.message_subject.notify(
-                    message=user_message,
-                    role="user"
+                    prompt_data = {}
+
+                agent = self._get_agent(
+                    agent_type=current_agent_type,
+                    llm_type='gemini',
+                    prompt_data=prompt_data
                 )
-                
-                while True:
-                    if current_handler_type == "sintomas":
-                        prompt_data = {
-                            "symptom_list": self.data['symptom_list'],
-                            "disease": self.data['disease']
-                        }
-                    else:
-                        prompt_data = {}
 
-                    handler = self.get_handler(
-                        handler_type=current_handler_type,
-                        agent_type='gemini',
-                        prompt_data=prompt_data
+                response = await agent.generate_response(message)
+                
+                # Notifica sobre a resposta do handler
+                if response.message:
+                    self.message_subject.notify(
+                        message=response.message,
+                        role="assistant"
                     )
-
-                    response = await handler.handle(context)
-
-                    if current_handler_type == 'get_random_symptoms_handler':
-                        for key in response.payload:
-                            self.data[key] = response.payload[key]
-                    
-                    # Notifica sobre a resposta do handler
-                    if response.message:
-                        self.message_subject.notify(
-                            message=response.message,
-                            role="assistant"
-                        )
-                    
-                    if response.handler_type == HandlerType.FINAL:
-                        return response.message
-                    
-                    current_handler_type = response.next_handler
                 
-            except Exception as e:
-                raise MessageProcessingError(f"Erro ao processar mensagem: {str(e)}")
+                if response.agent_type == AgentType.FINAL:
+                    return response.message
+
+                # Valida next_agent retornado pelo agent e aplica fallback mínimo
+                next_agent = response.next_agent or "sintomas"
+                # Se o agent factory não conhece esse tipo, cai para 'sintomas'
+                if not isinstance(next_agent, str) or next_agent not in self.agent_factory.agent_classes:
+                    self.logger.warning(f"Next agent inválido recebido: {next_agent!r}, usando 'sintomas' como fallback")
+                    current_agent_type = "sintomas"
+                else:
+                    current_agent_type = next_agent
+            
+        except Exception as e:
+            raise
 
     def _get_agent(self, agent_type: str, llm_type: str, prompt_data: dict[str, object]) -> AgentInterface:
         try:
@@ -95,7 +111,33 @@ class ChatCommandHandler:
                 llm_type=llm_type,
                 prompt_data=prompt_data
             )
+        except (HandlerNotFoundError, AgentConfigurationError, AgentTypeNotFoundError):
+            # Re-raise domain-specific exceptions as-is
+            raise
+        except ValueError as e:
+            # Convert ValueError (e.g., missing API key) to AgentConfigurationError
+            raise AgentConfigurationError(f"Erro de configuração ao criar o agente: {str(e)}")
         except Exception as e:
+            # For other unexpected errors, wrap as HandlerNotFoundError
             raise HandlerNotFoundError(f"Não foi possível obter o agente: {str(e)}")
+
+    def _get_random_user_disease_data(self) -> List[Symptom]:
+        all_patients = self.patient_repository.list_all()
+        
+        if not all_patients:
+            self.logger.warning("Nenhum paciente encontrado no banco de dados")
+            return []
+        
+        random_patient = random.choice(all_patients)
+        random_user_id = random_patient.patient_id
+        
+        self.logger.info(f"Usuário aleatório selecionado: {random_user_id}")
+        
+        symptoms = self.patient_symptom_repository.list_symptoms_for_patient(random_user_id)
+        disease = random_patient.disease
+        
+        self.logger.info(f"Sintomas encontrados para o usuário {random_user_id}: {[symptom.symptom_name for symptom in symptoms]}")
+        
+        return symptoms, disease
 
     

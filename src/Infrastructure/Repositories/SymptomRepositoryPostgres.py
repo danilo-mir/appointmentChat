@@ -10,11 +10,23 @@ class SymptomRepositoryPostgres(SymptomRepository):
     def __init__(self):
         self.connection = get_connection()
 
+    def get_symptom(self, id: str) -> Symptom:
+        with self.connection as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    'SELECT "symptom_id", "symptom_name" FROM symptoms WHERE "symptom_id" = %s',
+                    (id,),
+                )
+                row = cur.fetchone()
+                if not row:
+                    raise ValueError(f"Symptom with id {id} not found")
+                return Symptom(symptom_id=row[0], symptom_name=row[1])
+
     def get_by_id(self, symptom_id: UUID) -> Optional[Symptom]:
         with self.connection as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    'SELECT "symptomID", "symptomNAME" FROM symptoms WHERE "symptomID" = %s',
+                    'SELECT "symptom_id", "symptom_name" FROM symptoms WHERE "symptom_id" = %s',
                     (str(symptom_id),),
                 )
                 row = cur.fetchone()
@@ -26,7 +38,7 @@ class SymptomRepositoryPostgres(SymptomRepository):
         with self.connection as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    'SELECT "symptomID", "symptomNAME" FROM symptoms WHERE "symptomNAME" ILIKE %s',
+                    'SELECT "symptom_id", "symptom_name" FROM symptoms WHERE "symptom_name" ILIKE %s',
                     (name,),
                 )
                 row = cur.fetchone()
@@ -37,7 +49,7 @@ class SymptomRepositoryPostgres(SymptomRepository):
     def list_all(self) -> List[Symptom]:
         with self.connection as conn:
             with conn.cursor() as cur:
-                cur.execute('SELECT "symptomID", "symptomNAME" FROM symptoms ORDER BY "symptomNAME"')
+                cur.execute('SELECT "symptom_id", "symptom_name" FROM symptoms ORDER BY "symptom_name"')
                 rows = cur.fetchall()
                 return [Symptom(symptom_id=r[0], symptom_name=r[1]) for r in rows]
 

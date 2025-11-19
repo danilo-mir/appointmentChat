@@ -2,19 +2,30 @@ from src.Domain.Interfaces.Llm.LlmInterface import LlmInterface, LlmResponse, Ll
 import os
 import openai
 import asyncio
+from pathlib import Path
+from dotenv import load_dotenv
 
 
 class OpenAILlm(LlmInterface):
     def __init__(self, config: LlmConfig, system_prompt: str):
         super().__init__(config, system_prompt)
+        
+        # Carrega o .env da raiz do projeto
+        src_dir = Path(__file__).resolve().parents[2]
+        project_root = src_dir.parent
+        env_path = project_root / ".env"
+        
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path, override=False)
+        
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY não encontrada nas variáveis de ambiente!")
         openai.api_key = api_key
 
-    async def process(self, context: list[str]) -> LlmResponse:
-        if not context:
-            raise ValueError("Contexto vazio não é permitido")
+    async def process(self, message: str) -> LlmResponse:
+        if not message:
+            raise ValueError("Mensagem vazia não é permitida")
 
         try:
             response = await asyncio.to_thread(
@@ -24,7 +35,7 @@ class OpenAILlm(LlmInterface):
                     max_tokens=self.config.max_tokens,
                     messages=[
                         {"role": "system", "content": self.system_prompt},
-                        {"role": "user", "content": context[-1]},
+                        {"role": "user", "content": message},
                     ],
                 )
             )
