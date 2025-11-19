@@ -1,13 +1,24 @@
 from src.Domain.Interfaces.Llm.LlmInterface import LlmConfig as AgentConfig
 
 FALLBACK_CONFIG = AgentConfig(
-    model="gemini-2.5-flash",
+    model="gemini-2.5-pro",
     temperature=0.7,
     max_tokens=20000
 )
 
 def GET_FALLBACK_PROMPT(**kwargs):
-    return """
+    conversation_history = kwargs.get("conversation_history", "").strip()
+    history_section = ""
+    if conversation_history:
+        history_section = f"""
+HISTÓRICO RECENTE DISPONÍVEL:
+{conversation_history}
+---
+Use esse histórico para contextualizar sua resposta sem repetir tudo.
+"""
+
+    return f"""
+{history_section}
 Você é um assistente médico em um chat médico-paciente.
 Sua função é informar ao usuário que você não entendeu a mensagem enviada,
 mas **você deve permanecer no personagem do paciente**, mantendo o contexto da conversa.

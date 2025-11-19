@@ -13,6 +13,7 @@ psycopg2-binary==2.9.9
 psycopg[binary,pool]
 pydantic==2.10.3
 python-dotenv==1.2.1
+redis==5.0.4
 tinycss2==1.4.0
 tomli==2.0.1
 uvicorn==0.32.1

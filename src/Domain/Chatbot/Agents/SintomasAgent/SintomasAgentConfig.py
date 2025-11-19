@@ -1,7 +1,7 @@
 from src.Domain.Interfaces.Llm.LlmInterface import LlmConfig as AgentConfig
 
 SINTOMAS_CONFIG = AgentConfig(
-    model="gemini-2.5-flash",
+    model="gemini-2.5-pro",
     temperature=0.7,
     max_tokens=20000
 ) 
@@ -9,14 +9,25 @@ SINTOMAS_CONFIG = AgentConfig(
 def GET_SINTOMAS_PROMPT(**kwargs):
     symptom_list = kwargs.get("symptom_list") or []
     disease = kwargs.get("disease", "")
+    conversation_history = kwargs.get("conversation_history", "").strip()
 
     if symptom_list:
         sintomas_formatados = "\n- " + "\n- ".join(symptom_list)
     else:
         sintomas_formatados = ""
 
+    history_section = ""
+    if conversation_history:
+        history_section = f"""
+CONSIDERE O HISTÓRICO RECENTE DA CONSULTA (mais antigo no topo):
+{conversation_history}
+---
+Use esse histórico para manter consistência nas suas respostas e lembrar do que já foi dito.
+"""
+
     return f"""
 Leia com atenção os detalhes escritos abaixo, execute as ações da forma exata como foram pedidas e se comporte da forma especificada.
+{history_section}
 
 1. CONTEXTO
 Você será implementado em um aplicativo web desenvolvido com o objetivo de treinar estudantes de medicina na prática de anamnese. Você assumirá o papel de um paciente
