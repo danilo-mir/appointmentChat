@@ -16,11 +16,21 @@ from src.SharedKernel.Logging.Logger import get_logger
 from src.Domain.Chatbot.Agents.RouterAgent.RouterAgent import RouterAgent
 from src.Domain.Chatbot.Agents.SintomasAgent.SintomasAgent import SintomasAgent
 from src.Domain.Chatbot.Agents.FallBackAgent.FallbackAgent import FallbackAgent
+from src.Domain.Chatbot.Agents.ConversationAgent.ConversationAgent import ConversationAgent
+from src.Domain.Chatbot.Agents.FinalAgent.FinalAgent import FinalAgent
 
 
 from src.Domain.Chatbot.Agents.RouterAgent.RouterAgentConfig import ROUTER_CONFIG, GET_ROUTER_PROMPT
 from src.Domain.Chatbot.Agents.SintomasAgent.SintomasAgentConfig import SINTOMAS_CONFIG, GET_SINTOMAS_PROMPT
 from src.Domain.Chatbot.Agents.FallBackAgent.FallbackAgentConfig import FALLBACK_CONFIG, GET_FALLBACK_PROMPT
+from src.Domain.Chatbot.Agents.ConversationAgent.ConversationAgentConfig import (
+    CONVERSATION_CONFIG,
+    GET_CONVERSATION_PROMPT,
+)
+from src.Domain.Chatbot.Agents.FinalAgent.FinalAgentConfig import (
+    FINAL_CONFIG,
+    GET_FINAL_PROMPT,
+)
 
 
 class AgentFactory:
@@ -30,14 +40,18 @@ class AgentFactory:
         # --- Agentes de alto nível (antes: handlers com agente) ---
         self.agent_classes: Dict[str, Type[AgentInterface]] = {
             "router": RouterAgent,
+            "conversation": ConversationAgent,
             "sintomas": SintomasAgent,
+            "final": FinalAgent,
             "fallback": FallbackAgent,
         }
 
         # Configs para cada agente
         self.agent_configs: Dict[str, Tuple[dict, callable]] = {
             "router": (ROUTER_CONFIG, GET_ROUTER_PROMPT),
+            "conversation": (CONVERSATION_CONFIG, GET_CONVERSATION_PROMPT),
             "sintomas": (SINTOMAS_CONFIG, GET_SINTOMAS_PROMPT),
+            "final": (FINAL_CONFIG, GET_FINAL_PROMPT),
             "fallback": (FALLBACK_CONFIG, GET_FALLBACK_PROMPT),
         }
 
