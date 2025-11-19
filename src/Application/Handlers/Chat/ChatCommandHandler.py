@@ -106,10 +106,15 @@ class ChatCommandHandler:
                 next_agent = response.next_agent or "sintomas"
                 # Se o agent factory não conhece esse tipo, cai para 'sintomas'
                 if not isinstance(next_agent, str) or next_agent not in self.agent_factory.agent_classes:
-                    self.logger.warning(f"Next agent inválido recebido: {next_agent!r}, usando 'sintomas' como fallback")
-                    current_agent_type = "sintomas"
+                    self.logger.warning(
+                        f"Next agent inválido recebido: {next_agent!r}, usando 'sintomas' como fallback"
+                    )
+                    resolved_agent = "sintomas"
                 else:
-                    current_agent_type = next_agent
+                    resolved_agent = next_agent
+
+                self.logger.info(f"🔀 Direcionando conversa para o agente '{resolved_agent}'")
+                current_agent_type = resolved_agent
             
         except Exception as e:
             raise

@@ -7,7 +7,7 @@ from src.Infrastructure.Llm.GemniLlm import GeminiLlm
 SUMMARY_CONFIG = LlmConfig(
     model="gemini-2.5-pro",
     temperature=0.3,
-    max_tokens=20000
+    max_tokens=50000
 )
 
 SUMMARY_PROMPT = """
