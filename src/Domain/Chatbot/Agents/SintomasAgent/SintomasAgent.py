@@ -5,7 +5,7 @@ from src.Infrastructure.Llm.GemniLlm import GeminiLlm
 
 # Configuração para o agente de sumarização
 SUMMARY_CONFIG = LlmConfig(
-    model="gemini-2.5-pro",
+    model="gemini-2.5-flash",
     temperature=0.3,
     max_tokens=50000
 )
