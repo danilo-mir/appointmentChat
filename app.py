@@ -1,80 +1,23 @@
-# backend/main.py
-from typing import List, Optional
-import os
-import uvicorn
 from fastapi import FastAPI
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from src.Controllers.ChatController import ChatController
-from src.SharedKernel.Messages.Exceptions import POOChatException
 
-# Models para API
-class Message(BaseModel):
-    role: str
-    content: str
+from src.Api.chatController import router as chat_router
 
-class ChatRequest(BaseModel):
-    messages: List[Message]
 
-class ChatResponse(BaseModel):
-    content: str
-    error: Optional[str] = None
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    app.state.controller = ChatController()
-    print("✅ ChatController instanciado e backend pronto.")
-    yield  # <-- aqui o app fica rodando
-    print("🛑 Encerrando o backend...")
-
-app = FastAPI(title="AppointmentChat", lifespan=lifespan)
-
-# Permita chamadas do Streamlit (ajuste origem em produção)
-# Permita chamadas do Streamlit (ajuste origem em produção)
-# Use env var ALLOW_ORIGINS (separada por vírgula) ou padrão local
-origins_env = os.getenv("ALLOW_ORIGINS", "http://localhost:8501")
-allow_origins = [o.strip() for o in origins_env.split(",") if o.strip()]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allow_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+app = FastAPI(
+    title="Appointment Chat API",
+    version="0.1.0",
+    description="API de chat para agendamentos",
 )
 
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 
-@app.get("/")
-async def root():
-    return JSONResponse({"status": "ok", "message": "Backend do Appointment Chat está rodando 🚀"})
+app.include_router(chat_router)
 
-@app.get("/health")
-async def health():
+
+@app.get("/health", tags=["Health"])
+def health_check() -> dict:
+    """
+    Endpoint simples de healthcheck para verificar se a API está de pé.
+    """
     return {"status": "ok"}
 
-@app.post("/chat", response_model=ChatResponse)
-async def chat_endpoint(req: ChatRequest, request: Request):
-    """
-    Recebe uma lista de mensagens (histórico), passa para o controller e retorna a resposta.
-    O controller é responsável por processar o contexto.
-    """
-    controller: ChatController = request.app.state.controller
-    # Extrair apenas o conteúdo — adapte se o controller precisar do papel (role).
-    messages_content = [m.content for m in req.messages]
 
-    try:
-        response = await controller.process_message(messages_content)
-        return ChatResponse(content=response)
-    except POOChatException as e:
-        # Erro de domínio: retorne mensagem clara
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        # Erro inesperado
-        raise HTTPException(status_code=500, detail="Erro interno do servidor: " + str(e))
-
-
-if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

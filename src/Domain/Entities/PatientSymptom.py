@@ -1,8 +1,8 @@
 from uuid import UUID
 
 
-class Symptom:
+class PatientSymptom:
+    patient_id: UUID
     symptom_id: UUID
-    symptom_name: str
 
 
