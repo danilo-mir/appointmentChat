@@ -26,9 +26,9 @@ class PatientSymptomRepositoryPostgres(PatientSymptomRepository):
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    '''SELECT s."symptomID", s."symptomNAME" 
+                    '''SELECT s."symptom_id", s."symptom_name" 
                        FROM symptoms s
-                       INNER JOIN patient_symptoms ps ON s."symptomID" = ps."symptom_id"
+                       INNER JOIN patient_symptoms ps ON s."symptom_id" = ps."symptom_id"
                        WHERE ps."patient_id" = %s''',
                     (str(patient_id),),
                 )
