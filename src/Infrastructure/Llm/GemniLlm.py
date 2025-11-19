@@ -23,11 +23,11 @@ class GeminiLlm(LlmInterface):
             raise ValueError("GEMINI_API_KEY não encontrada nas variáveis de ambiente!")
         self.client = genai.Client(api_key=api_key)
 
-    async def process(self, context: list[str]) -> LlmResponse:
-        if not context:
-            raise ValueError("Contexto vazio não é permitido")
+    async def process(self, message: str) -> LlmResponse:
+        if not message:
+            raise ValueError("Mensagem vazia não é permitida")
         try:
-            full_prompt = f"{self.system_prompt}\n\n{context[-1]}"
+            full_prompt = f"{self.system_prompt}\n\n{message}"
 
             # Chamada compatível com a SDK
             response = await asyncio.to_thread(

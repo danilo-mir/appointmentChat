@@ -1,4 +1,3 @@
-from typing import List
 from src.SharedKernel.Logging.Logger import get_logger
 from src.Domain.Chatbot.Abstractions.AgentInterface import AgentInterface, AgentType, AgentResponse
 
@@ -9,9 +8,9 @@ class RouterAgent(AgentInterface):
         self.logger = get_logger(__name__)
         self.current_agent = None
 
-    async def generate_response(self, context: List[str]) -> AgentResponse:
+    async def generate_response(self, message: str) -> AgentResponse:
         try:
-            user_message = context[-1]
+            user_message = message
 
             if self.current_agent and self._is_follow_up_question(user_message):
                 return AgentResponse(
@@ -19,7 +18,7 @@ class RouterAgent(AgentInterface):
                     next_agent=self.current_agent
                 )
 
-            agent_result = await self.llm.process(context)
+            agent_result = await self.llm.process(user_message)
 
             predicted_agent = (agent_result.message or "").strip().lower()
 

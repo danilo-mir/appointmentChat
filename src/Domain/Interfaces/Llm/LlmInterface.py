@@ -24,8 +24,8 @@ class LlmInterface(ABC):
         self.logger = get_logger(__name__)
 
     @abstractmethod
-    async def process(self, context: list[str]) -> LlmResponse:
+    async def process(self, message: str) -> LlmResponse:
         """
-        Processa o contexto usando o LLM e retorna uma resposta.
+        Processa a mensagem usando o LLM e retorna uma resposta.
         """
         raise NotImplementedError

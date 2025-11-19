@@ -1,4 +1,3 @@
-from typing import List
 from src.Domain.Chatbot.Abstractions.AgentInterface import AgentInterface, AgentType, AgentResponse
 from src.SharedKernel.Logging.Logger import get_logger
 from src.Domain.Interfaces.Llm.LlmInterface import LlmConfig
@@ -49,7 +48,7 @@ class SintomasAgent(AgentInterface):
     #         # Fallback: apenas pegar as últimas mensagens
     #         return " ".join(context[-2:])
 
-    async def generate_response(self, context: List[str]) -> AgentResponse:
+    async def generate_response(self, message: str) -> AgentResponse:
         """
         Processa a mensagem considerando o contexto da conversa e o histórico
         de perguntas e respostas sobre sintomas do paciente.
@@ -57,27 +56,33 @@ class SintomasAgent(AgentInterface):
         """
         try:
             # --- Step 1: combinar memória + contexto atual ---
+            # Construímos um contexto local a partir da mensagem única.
+            context_list = [message]
+
             working_context = []
             if self.memory_summary:
                 working_context.append(f"[Resumo anterior da conversa: {self.memory_summary}]")
-            working_context.extend(context)
+            working_context.extend(context_list)
 
             # --- Step 2: Processar com o agente principal ---
-            agent_response = await self.llm.process(working_context)
+            # Enviamos o prompt como uma única string ao LLM para preservar
+            # o comportamento anterior que usava o último elemento do contexto.
+            prompt_text = "\n".join(working_context)
+            agent_response = await self.llm.process(prompt_text)
 
             # --- Step 3: Decidir se deve resumir ---
-            if len(context) >= self.max_context_length:
+            if len(context_list) >= self.max_context_length:
                 all_text = []
                 if self.memory_summary:
                     all_text.append(self.memory_summary)
-                all_text.extend(context)
+                all_text.extend(context_list)
                 self.memory_summary = await self.summarize_context(all_text)
 
-                # Limpar contexto para evitar crescimento infinito
-                context.clear()
-                context.append(f"[Resumo atualizado: {self.memory_summary}]")
+                # Limpar contexto local e inserir resumo
+                context_list.clear()
+                context_list.append(f"[Resumo atualizado: {self.memory_summary}]")
 
-            self.logger.info(f"Processada mensagem sobre sintomas: {context[-1]}")
+            self.logger.info(f"Processada mensagem sobre sintomas: {context_list[-1]}")
 
             # --- Step 4: Retornar como AgentResponse ---
             return AgentResponse(

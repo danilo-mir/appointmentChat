@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict
 from src.Domain.Chatbot.Abstractions.AgentInterface import (
     AgentInterface,
     AgentType,
@@ -13,6 +13,7 @@ from src.SharedKernel.Messages.Exceptions import (
 )
 from src.SharedKernel.Logging.Logger import get_logger
 from src.SharedKernel.Observer.Observer import MessageSubject, LoggingObserver
+from src.Application.Handlers.Chat.DTOs_.ChatCommand import ChatCommand
 
 
 class ChatCommandHandler:
@@ -35,15 +36,15 @@ class ChatCommandHandler:
         
         self.logger.info("💬 Chat inicializado e pronto para uso")
 
-    async def handle(self, context: List[str]) -> str:
+    async def handle(self, command: ChatCommand) -> str:
         try:
             current_agent_type = "router"
-            
-            user_message = context[-1] if context else ""
-            
+
+            message = command.message
+
             # Notifica sobre a mensagem do usuário
             self.message_subject.notify(
-                message=user_message,
+                message=message,
                 role="user"
             )
             
@@ -62,7 +63,7 @@ class ChatCommandHandler:
                     prompt_data=prompt_data
                 )
 
-                response = await agent.generate_response(context)
+                response = await agent.generate_response(message)
                 
                 # Notifica sobre a resposta do handler
                 if response.message:
@@ -73,8 +74,15 @@ class ChatCommandHandler:
                 
                 if response.agent_type == AgentType.FINAL:
                     return response.message
-                
-                current_agent_type = response.next_agent
+
+                # Valida next_agent retornado pelo agent e aplica fallback mínimo
+                next_agent = response.next_agent or "sintomas"
+                # Se o agent factory não conhece esse tipo, cai para 'sintomas'
+                if not isinstance(next_agent, str) or next_agent not in self.agent_factory.agent_classes:
+                    self.logger.warning(f"Next agent inválido recebido: {next_agent!r}, usando 'sintomas' como fallback")
+                    current_agent_type = "sintomas"
+                else:
+                    current_agent_type = next_agent
             
         except Exception as e:
             raise

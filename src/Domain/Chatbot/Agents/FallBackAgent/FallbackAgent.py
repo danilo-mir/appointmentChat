@@ -1,14 +1,10 @@
-from typing import List
 from src.Domain.Chatbot.Abstractions.AgentInterface import (
     AgentInterface,
     AgentResponse,
     AgentType,
 )
 from src.SharedKernel.Logging.Logger import get_logger
-from src.Domain.Chatbot.Abstractions.AgentInterface import (
-    AgentResponse,
-    AgentType,
-)
+
 
 class FallbackAgent(AgentInterface):
 
@@ -16,12 +12,12 @@ class FallbackAgent(AgentInterface):
         super().__init__(llm)
         self.logger = get_logger(__name__)
 
-    async def generate_response(self, context: List[str]) -> AgentResponse:
+    async def generate_response(self, message: str) -> AgentResponse:
         try:
-            last_message = context[-1] if context else ""
-            
-            agent_response = await self.agent.process(context)
-            response_text = agent_response.message.strip()
+            last_message = message or ""
+
+            agent_response = await self.llm.process(message)
+            response_text = (agent_response.message or "").strip()
 
             return AgentResponse(
                 agent_type=AgentType.FINAL,
