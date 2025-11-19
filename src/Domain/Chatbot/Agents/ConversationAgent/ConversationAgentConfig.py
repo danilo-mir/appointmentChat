@@ -2,9 +2,8 @@ from src.Domain.Interfaces.Llm.LlmInterface import LlmConfig as AgentConfig
 
 
 CONVERSATION_CONFIG = AgentConfig(
-    model="gemini-2.5-flash",
-    temperature=0.65,
-    max_tokens=50000,
+    model="gpt-5-mini",
+    max_completion_tokens=50000,
 )
 
 

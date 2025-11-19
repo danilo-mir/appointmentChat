@@ -13,8 +13,7 @@ class LlmResponse(BaseModel):
 
 class LlmConfig(BaseModel):
     model: str
-    temperature: float
-    max_tokens: int
+    max_completion_tokens: int
 
 
 class LlmInterface(ABC):

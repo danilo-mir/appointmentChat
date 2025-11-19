@@ -77,7 +77,7 @@ class ChatCommandHandler:
 
                 agent = self._get_agent(
                     agent_type=current_agent_type,
-                    llm_type='gemini',
+                    llm_type='gpt',
                     prompt_data=prompt_data
                 )
 

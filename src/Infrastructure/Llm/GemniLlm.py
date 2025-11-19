@@ -35,8 +35,7 @@ class GeminiLlm(LlmInterface):
                     model=self.config.model,
                     contents=full_prompt,
                     config=types.GenerateContentConfig(
-                        temperature=self.config.temperature,
-                        max_output_tokens=self.config.max_tokens
+                        max_output_tokens=self.config.max_completion_tokens
                     )
                 )
             )

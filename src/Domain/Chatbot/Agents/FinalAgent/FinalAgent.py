@@ -29,13 +29,13 @@ class FinalAgent(AgentInterface):
             return AgentResponse(
                 agent_type=AgentType.FINAL,
                 message=reply,
-                next_agent=None,
+                next_agent=AgentType.FINAL,
             )
         except Exception as exc:
             self.logger.error(f"Erro no FinalAgent: {str(exc)}")
             return AgentResponse(
                 agent_type=AgentType.FINAL,
                 message=self.default_message,
-                next_agent=None,
+                next_agent=AgentType.FINAL,
             )
 

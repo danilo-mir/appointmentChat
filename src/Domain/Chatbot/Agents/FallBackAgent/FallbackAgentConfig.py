@@ -1,9 +1,8 @@
 from src.Domain.Interfaces.Llm.LlmInterface import LlmConfig as AgentConfig
 
 FALLBACK_CONFIG = AgentConfig(
-    model="gemini-2.5-flash",
-    temperature=0.7,
-    max_tokens=50000
+    model="gpt-5-mini",
+    max_completion_tokens=50000
 )
 
 def GET_FALLBACK_PROMPT(**kwargs):
