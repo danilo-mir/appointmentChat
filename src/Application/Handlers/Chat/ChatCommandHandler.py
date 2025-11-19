@@ -1,11 +1,16 @@
 from typing import List, Dict
 from src.Domain.Chatbot.Abstractions.AgentInterface import (
     AgentInterface,
-    AgentType as HandlerType,
+    AgentType,
     AgentResponse,
 )
 from src.Domain.Factories.HandlerFactory import AgentFactory
-from src.SharedKernel.Messages.Exceptions import HandlerNotFoundError, MessageProcessingError
+from src.SharedKernel.Messages.Exceptions import (
+    HandlerNotFoundError,
+    MessageProcessingError,
+    AgentConfigurationError,
+    AgentTypeNotFoundError,
+)
 from src.SharedKernel.Logging.Logger import get_logger
 from src.SharedKernel.Observer.Observer import MessageSubject, LoggingObserver
 
@@ -20,14 +25,7 @@ class ChatCommandHandler:
         self.message_subject = MessageSubject()
         self.message_subject.attach(LoggingObserver(self.logger))
 
-        # Kwargs a serem adicionados em prompts
-        # Vai ser obtido por ex do handler do random symptom
-        # self.prompt_data = {
-        #     "symptom_list": ["retal pain"],
-        #     "disease": "ligma"
-        # }
-
-        # Imagino que essas variaveis NAO devam ficar no controller pq tao armazenando memoria @Buzz
+        # Imagino que essas variaveis NAO devam ficar no controller pq tao armazenando memoria
         # Mas funciona por enquanto
         self.conversation_started = False
         self.data = {
@@ -37,56 +35,49 @@ class ChatCommandHandler:
         
         self.logger.info("💬 Chat inicializado e pronto para uso")
 
-        async def handle(self, context: List[str]) -> str:
-            try:
-                if not self.conversation_started:
-                    self.conversation_started = True
-                    current_handler_type = 'get_random_symptoms_handler'
+    async def handle(self, context: List[str]) -> str:
+        try:
+            current_agent_type = "router"
+            
+            user_message = context[-1] if context else ""
+            
+            # Notifica sobre a mensagem do usuário
+            self.message_subject.notify(
+                message=user_message,
+                role="user"
+            )
+            
+            while True:
+                if current_agent_type == "sintomas":
+                    prompt_data = {
+                        "symptom_list": self.data['symptom_list'],
+                        "disease": self.data['disease']
+                    }
                 else:
-                    current_handler_type = "router"
-                user_message = context[-1] if context else ""
-                
-                # Notifica sobre a mensagem do usuário
-                self.message_subject.notify(
-                    message=user_message,
-                    role="user"
+                    prompt_data = {}
+
+                agent = self._get_agent(
+                    agent_type=current_agent_type,
+                    llm_type='gemini',
+                    prompt_data=prompt_data
                 )
-                
-                while True:
-                    if current_handler_type == "sintomas":
-                        prompt_data = {
-                            "symptom_list": self.data['symptom_list'],
-                            "disease": self.data['disease']
-                        }
-                    else:
-                        prompt_data = {}
 
-                    handler = self.get_handler(
-                        handler_type=current_handler_type,
-                        agent_type='gemini',
-                        prompt_data=prompt_data
+                response = await agent.generate_response(context)
+                
+                # Notifica sobre a resposta do handler
+                if response.message:
+                    self.message_subject.notify(
+                        message=response.message,
+                        role="assistant"
                     )
-
-                    response = await handler.handle(context)
-
-                    if current_handler_type == 'get_random_symptoms_handler':
-                        for key in response.payload:
-                            self.data[key] = response.payload[key]
-                    
-                    # Notifica sobre a resposta do handler
-                    if response.message:
-                        self.message_subject.notify(
-                            message=response.message,
-                            role="assistant"
-                        )
-                    
-                    if response.handler_type == HandlerType.FINAL:
-                        return response.message
-                    
-                    current_handler_type = response.next_handler
                 
-            except Exception as e:
-                raise MessageProcessingError(f"Erro ao processar mensagem: {str(e)}")
+                if response.agent_type == AgentType.FINAL:
+                    return response.message
+                
+                current_agent_type = response.next_agent
+            
+        except Exception as e:
+            raise
 
     def _get_agent(self, agent_type: str, llm_type: str, prompt_data: dict[str, object]) -> AgentInterface:
         try:
@@ -95,7 +86,14 @@ class ChatCommandHandler:
                 llm_type=llm_type,
                 prompt_data=prompt_data
             )
+        except (HandlerNotFoundError, AgentConfigurationError, AgentTypeNotFoundError):
+            # Re-raise domain-specific exceptions as-is
+            raise
+        except ValueError as e:
+            # Convert ValueError (e.g., missing API key) to AgentConfigurationError
+            raise AgentConfigurationError(f"Erro de configuração ao criar o agente: {str(e)}")
         except Exception as e:
+            # For other unexpected errors, wrap as HandlerNotFoundError
             raise HandlerNotFoundError(f"Não foi possível obter o agente: {str(e)}")
 
     

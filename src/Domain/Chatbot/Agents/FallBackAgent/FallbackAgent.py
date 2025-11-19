@@ -6,14 +6,14 @@ from src.Domain.Chatbot.Abstractions.AgentInterface import (
 )
 from src.SharedKernel.Logging.Logger import get_logger
 from src.Domain.Chatbot.Abstractions.AgentInterface import (
-    AgentResponse as HandlerResponse,
-    AgentType as HandlerType,
+    AgentResponse,
+    AgentType,
 )
 
 class FallbackAgent(AgentInterface):
 
-    def __init__(self, agent=None):
-        super().__init__(agent)
+    def __init__(self, llm=None):
+        super().__init__(llm)
         self.logger = get_logger(__name__)
 
     async def generate_response(self, context: List[str]) -> AgentResponse:
@@ -23,16 +23,16 @@ class FallbackAgent(AgentInterface):
             agent_response = await self.agent.process(context)
             response_text = agent_response.message.strip()
 
-            return HandlerResponse(
-                handler_type=HandlerType.FINAL,
+            return AgentResponse(
+                agent_type=AgentType.FINAL,
                 message=response_text,
-                next_handler=None
+                next_agent=None
             )
 
         except Exception as e:
-            self.logger.error(f"Erro no FallbackAIHandler: {str(e)}")
-            return HandlerResponse(
-                handler_type=HandlerType.FINAL,
+            self.logger.error(f"Erro no FallbackAgent: {str(e)}")
+            return AgentResponse(
+                agent_type=AgentType.FINAL,
                 message="Ocorreu um erro inesperado ao processar sua mensagem.",
-                next_handler=None
+                next_agent=None
             )

@@ -23,9 +23,6 @@ from src.Domain.Chatbot.Agents.SintomasAgent.SintomasAgentConfig import SINTOMAS
 from src.Domain.Chatbot.Agents.FallBackAgent.FallbackAgentConfig import FALLBACK_CONFIG, GET_FALLBACK_PROMPT
 
 
-from src.Application.Tools.GetRandomSymptomsToolHandler import GetRandomSymptomsHandler
-
-
 class AgentFactory:
     def __init__(self):
         self.logger = get_logger(__name__)
@@ -52,8 +49,6 @@ class AgentFactory:
 
         # --- Agentes que usam apenas tools (antes: handlers only) ---
         self.tool_only_agents: Dict[str, Type[AgentInterface]] = {
-            # Mantém a chave antiga por compatibilidade; classe continuará funcional
-            "get_random_symptoms_handler": GetRandomSymptomsHandler
         }
 
         self.logger.info("AgentFactory inicializado com sucesso")

@@ -10,6 +10,18 @@ class SymptomRepositoryPostgres(SymptomRepository):
     def __init__(self):
         self.connection = get_connection()
 
+    def get_symptom(self, id: str) -> Symptom:
+        with self.connection as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    'SELECT "symptomID", "symptomNAME" FROM symptoms WHERE "symptomID" = %s',
+                    (id,),
+                )
+                row = cur.fetchone()
+                if not row:
+                    raise ValueError(f"Symptom with id {id} not found")
+                return Symptom(symptom_id=row[0], symptom_name=row[1])
+
     def get_by_id(self, symptom_id: UUID) -> Optional[Symptom]:
         with self.connection as conn:
             with conn.cursor() as cur:

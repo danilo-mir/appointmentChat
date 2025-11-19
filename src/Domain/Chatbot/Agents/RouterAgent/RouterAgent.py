@@ -4,8 +4,8 @@ from src.Domain.Chatbot.Abstractions.AgentInterface import AgentInterface, Agent
 
 
 class RouterAgent(AgentInterface):
-    def __init__(self, agent):
-        super().__init__(agent)
+    def __init__(self, llm):
+        super().__init__(llm)
         self.logger = get_logger(__name__)
         self.current_agent = None
 
@@ -16,29 +16,29 @@ class RouterAgent(AgentInterface):
             if self.current_agent and self._is_follow_up_question(user_message):
                 return AgentResponse(
                     agent_type=AgentType.NEXT,
-                    next_handler=self.current_handler
+                    next_agent=self.current_agent
                 )
 
-            agent_result = await self.agent.process(context)
+            agent_result = await self.llm.process(context)
 
-            predicted_handler = (agent_result.message or "").strip().lower()
+            predicted_agent = (agent_result.message or "").strip().lower()
 
-            if not predicted_handler:
-                predicted_handler = "sintomas"
+            if not predicted_agent:
+                predicted_agent = "sintomas"
 
-            self.current_handler = predicted_handler
+            self.current_agent = predicted_agent
 
             return AgentResponse(
                 agent_type=AgentType.NEXT,
-                next_handler=self.current_handler
+                next_agent=self.current_agent
             )
 
         except Exception as e:
-            self.logger.error(f"Erro no RouterHandler: {str(e)}")
-            self.current_handler = "sintomas"
+            self.logger.error(f"Erro no RouterAgent: {str(e)}")
+            self.current_agent = "sintomas"
             return AgentResponse(
                 agent_type=AgentType.NEXT,
-                next_handler="sintomas"
+                next_agent="sintomas"
             )
 
     def _is_follow_up_question(self, message: str) -> bool:
